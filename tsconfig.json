@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "target": "es2020",
+    "strict": true,
+    "experimentalDecorators": true,
+    "preserveConstEnums": true,
+    "noEmit": true,
+    "sourceMap": false,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+  },
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts"
+  ]
+}

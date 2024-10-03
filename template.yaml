@@ -1,0 +1,72 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  aws-sam-project
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  AppName:
+    Type: String
+    Description: Name for the application
+  StageName:
+    Type: String
+    Description: Name for the stage
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+  GatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Auth:
+        Authorizers:
+          GeneralAuth:
+            FunctionArn: !GetAtt AuthFunction.Arn
+
+  # This is a Lambda function config associated with the source code: get-all-items.js
+  AuthSignInFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 10
+      CodeUri: .
+      Handler: sign-in.handler
+      FunctionName: !Sub "${AWS::StackName}-${StageName}-auth-sign_in"
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Description: A simple example of sign in
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        RestApiUnauthorized:
+          Type: Api
+          Properties:
+            Path: /auth/sign-in
+            Method: POST
+            RestApiId: !Ref GatewayApi
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Sourcemap: false
+        Minify: true
+        Target: "es2020"
+        EntryPoints:
+          - src/app/auth/sign-in.ts
+
+Outputs:
+  StageName:
+    Description: Application stage name
+    Value: !Ref StageName
+  EndpointUrl:
+    Description: Application endpoint url
+    Value: !Sub "https://${HavWtrApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/"
+
